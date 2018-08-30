@@ -3,13 +3,16 @@
         <button @click="handleButtonClick">切换</button>
         <br/>
         <svg>
+            <text x="250" y="50">{{currentCountry}}</text>
             <line x1="40" x2="560" y1="250" y2="250" stroke="#ddd"/>
+            <transition-group tag="g" name="circle">
+                <circle v-for="(r, index) in currentData" :key="index" :cx="getCurrentCx(index)" cy="250" :r="r"/>
+            </transition-group>
         </svg>
     </div>
 </template>
 
 <script>
-import * as d3 from 'd3'
 
 let dataSource = [
     ['中国', [30, 45, 88, 23]],
@@ -22,59 +25,28 @@ export default {
     name: 'HelloWorld',
     data () {
         return {
-            currentIndex: 0
+            currentIndex: 0,
+            currentData: [],
+            currentCountry: '--'
         }
     },
     mounted () {
-        let svg = d3.select(this.$el).select('svg')
-        svg.append('text').attr('x', 250).attr('y', 50).text(dataSource[this.currentIndex][0])
-
-        //创建圆
-        svg.append('g').selectAll('circle')
-            .data(dataSource[this.currentIndex][1])
-            .enter()
-            .append('circle')
-            .attr('class', 'myCircle')
-            .attr('cx', (d, i) => {
-                let spacing = lineLength / dataSource[this.currentIndex][1].length
-                return 100 + i * spacing
-            })
-            .attr('cy', 250)
-            .attr('r', (d) => {
-                return d
-            })
+        this.currentData = dataSource[this.currentIndex][1].slice(0)
+        this.currentCountry = dataSource[this.currentIndex][0]
     },
     methods: {
+        getCurrentCx (index) {
+            let spacing = lineLength / dataSource[this.currentIndex][1].length
+            return 100 + index * spacing
+        },
         handleButtonClick () {
             this.currentIndex++
             if (this.currentIndex == dataSource.length) {
                 this.currentIndex = 0
             }
 
-            let svg = d3.select(this.$el).select('svg')
-            svg.select('text').text(dataSource[this.currentIndex][0])
-
-            let circle = svg.select('g').selectAll('circle').data(dataSource[this.currentIndex][1])
-            circle.exit().remove()
-            let newCircle = circle.enter().append('circle')
-                .attr('class', 'myCircle')
-                .attr('r', 0)
-                .attr('cx', (d, i) => {
-                    let spacing = lineLength / dataSource[this.currentIndex][1].length
-                    return 100 + i * spacing
-                })
-            circle = newCircle.merge(circle)
-
-            circle.transition().duration(500)
-                .attr('cx', (d, i) => {
-                    let spacing = lineLength / dataSource[this.currentIndex][1].length
-                    return 100 + i * spacing
-                })
-                .attr('cy', 250)
-                .attr('r', (d) => {
-                    return d
-                })
-            svg.select('text').text(dataSource[this.currentIndex][0])
+            this.currentData = dataSource[this.currentIndex][1].slice(0)
+            this.currentCountry = dataSource[this.currentIndex][0]
         }
     }
 }
@@ -99,9 +71,14 @@ export default {
         border-style: solid;
     }
 
-    .myCircle {
+    circle {
         fill: orange;
         stroke: orange;
         fill-opacity: 0.5;
     }
+
+    .circle-enter-active {
+        transition: all 2s;
+    }
+
 </style>
